@@ -140,11 +140,13 @@ public class SwiftFacebookAppEventsPlugin: NSObject, FlutterPlugin {
     private func handlePushNotificationOpen(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         let arguments = call.arguments as? [String: Any] ?? [String: Any]()
         let payload = arguments["payload"] as? [String: Any]
-        if let action = arguments["action"] as? String {
-            AppEvents.shared.logPushNotificationOpen(payload: payload!, action: action)
+        if let action = arguments["action"] {
+            let actionString = action as! String
+            AppEvents.shared.logPushNotificationOpen(payload: payload!, action: actionString)
         } else {
             AppEvents.shared.logPushNotificationOpen(payload: payload!)
         }
+
         result(nil)
     }
 
@@ -185,7 +187,11 @@ public class SwiftFacebookAppEventsPlugin: NSObject, FlutterPlugin {
         let arguments = call.arguments as? [String: Any] ?? [String: Any]()
         let enabled = arguments["enabled"] as! Bool
         let collectId = arguments["collectId"] as! Bool
-        FBAdSettings.setAdvertiserTrackingEnabled(enabled)
+        if #available(iOS 12.0, *) {
+            FBAdSettings.setAdvertiserTrackingEnabled(enabled)
+        } else {
+            // Fallback on earlier versions
+        }
         Settings.shared.isAdvertiserTrackingEnabled = enabled
         Settings.shared.isAdvertiserIDCollectionEnabled = collectId
         result(nil)
